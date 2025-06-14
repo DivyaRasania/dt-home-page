@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hey There!</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            cursor: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: none;
+        }
+        .cursor-highlight {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            filter: blur(40px);
+            transition: left 0.2s ease-out, top 0.2s ease-out, opacity 0.3s ease;
+            will-change: left, top;
+        }
+        .styled-button {
+            display: inline-block;
+            background-color: #4a5568;
+            color: white;
+            font-weight: bold;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s, background-color 0.2s;
+            text-decoration: none;
+        }
+        .styled-button:hover {
+            background-color: #718096;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white overflow-hidden">
+
+    <div id="cursor-highlight" class="cursor-highlight bg-yellow-400 w-64 h-64 opacity-30"></div>
+
+    <div class="h-screen w-full flex items-center justify-center">
+        <div class="text-center p-4">
+            <h1 id="greeting" class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tighter">
+                Say hi to your brand new digital tijori!
+            </h1>
+            <!-- Dynamic Service Counter Heading -->
+            <h2 id="service-counter" class="mt-12 text-xl text-gray-300 font-semibold tracking-wide" style="margin-bottom: 40px; font-size: 25px"></h2>
+            <!-- Button Container -->
+            <div id="button-container" class="mt-4 flex flex-wrap justify-center items-center gap-4">
+		<a href="https://vaultwarden.digital-tijori.theworkpc.com" class="styled-button">Vaultwarden</a>
+                <a href="https://immich.digital-tijori.theworkpc.com" class="styled-button">Immich</a>
+	    </div>
+	    <p class="mt-4 text-lg md:text-xl text-gray-400">
+                Admin
+            </p>
+	    <div id="button-container" class="mt-4 flex flex-wrap justify-center items-center gap-4">
+		<a href="https://portainer.digital-tijori.theworkpc.com" class="styled-button">Portainer</a>
+		<a href="https://wireguard.digital-tijori.theworkpc.com" class="styled-button">Wireguard</a>
+		<a href="https://filebrowser.digital-tijori.theworkpc.com" class="styled-button">File Browser</a>
+	    </div>
+        </div>
+    </div>
+
+    <script>
+        // --- HIGHLIGHTER LOGIC ---
+        const highlight = document.getElementById('cursor-highlight');
+        let inactivityTimeout;
+        let roamAnimationId = null;
+        let dashInterval = null;
+        let pos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        let vel = { x: 0, y: 0 };
+        const speed = 0.4;
+
+        function setHighlightPosition(x, y) {
+            highlight.style.left = `${x}px`;
+            highlight.style.top = `${y}px`;
+        }
+
+        function roamAnimation() {
+            pos.x += vel.x;
+            pos.y += vel.y;
+            const margin = 10;
+            if (pos.x <= margin || pos.x >= window.innerWidth - margin) vel.x *= -1;
+            if (pos.y <= margin || pos.y >= window.innerHeight - margin) vel.y *= -1;
+            setHighlightPosition(pos.x, pos.y);
+            roamAnimationId = requestAnimationFrame(roamAnimation);
+        }
+
+        function dash() {
+            pos.x = Math.random() * window.innerWidth;
+            pos.y = Math.random() * window.innerHeight;
+            highlight.style.transition = 'left 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), top 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55)';
+            setHighlightPosition(pos.x, pos.y);
+            setTimeout(() => { highlight.style.transition = 'left 0.05s linear, top 0.05s linear'; }, 500);
+        }
+
+        function startRoaming() {
+            if (roamAnimationId) return;
+            highlight.style.transition = 'left 0.05s linear, top 0.05s linear';
+            const angle = Math.random() * 2 * Math.PI;
+            vel.x = Math.cos(angle) * speed;
+            vel.y = Math.sin(angle) * speed;
+            roamAnimationId = requestAnimationFrame(roamAnimation);
+            if(dashInterval) clearInterval(dashInterval);
+            dashInterval = setInterval(dash, 4000 + Math.random() * 2000);
+        }
+        
+        function stopRoaming() {
+            if (roamAnimationId) {
+                cancelAnimationFrame(roamAnimationId);
+                roamAnimationId = null;
+            }
+            if (dashInterval) {
+                clearInterval(dashInterval);
+                dashInterval = null;
+            }
+        }
+
+        function handleInteraction(clientX, clientY) {
+            stopRoaming();
+            clearTimeout(inactivityTimeout);
+            highlight.style.transition = 'left 0.2s ease-out, top 0.2s ease-out, opacity 0.3s ease';
+            pos.x = clientX;
+            pos.y = clientY;
+            setHighlightPosition(pos.x, pos.y);
+            inactivityTimeout = setTimeout(startRoaming, 2000);
+        }
+
+        // --- EVENT LISTENERS & INITIALIZATION ---
+        window.addEventListener('load', () => {
+            // Start the highlighter roaming animation
+            startRoaming();
+
+            // Set up the dynamic service counter
+            const buttonContainer = document.getElementById('button-container');
+            const serviceCounterElement = document.getElementById('service-counter');
+            
+            if (buttonContainer && serviceCounterElement) {
+                const serviceCount = buttonContainer.children.length;
+                serviceCounterElement.textContent = `We offer ${serviceCount} services. Click to explore.`;
+            }
+        });
+
+        window.addEventListener('mousemove', e => handleInteraction(e.clientX, e.clientY));
+        document.addEventListener('mouseleave', () => { highlight.style.opacity = '0'; });
+        document.addEventListener('mouseenter', () => { highlight.style.opacity = '0.3'; });
+        window.addEventListener('touchstart', e => handleInteraction(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+        window.addEventListener('touchmove', e => handleInteraction(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+        window.addEventListener('touchend', () => {
+            clearTimeout(inactivityTimeout);
+            inactivityTimeout = setTimeout(startRoaming, 2000);
+        });
+
+    </script>
+
+</body>
+</html>
+
